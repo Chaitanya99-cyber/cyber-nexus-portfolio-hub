@@ -88,14 +88,16 @@ const HeroSection = () => {
             Explore Products
           </Button>
           
-          <Button
-            onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+          <Button 
+            onClick={() => {
+              window.open('/admin', '_blank');
+            }}
             variant="outline"
             size="lg"
             className="neon-border bg-transparent hover:bg-primary/10"
           >
-            <Mail className="h-5 w-5 mr-2" />
-            Get In Touch
+            <Shield className="h-5 w-5 mr-2" />
+            Admin Panel
           </Button>
         </div>
 
@@ -106,7 +108,7 @@ const HeroSection = () => {
             <div className="text-sm text-muted-foreground">Years Experience</div>
           </div>
           <div className="text-center cyber-card">
-            <div className="text-2xl font-bold text-accent">50+</div>
+            <div className="text-2xl font-bold text-accent">2</div>
             <div className="text-sm text-muted-foreground">Projects Delivered</div>
           </div>
           <div className="text-center cyber-card">

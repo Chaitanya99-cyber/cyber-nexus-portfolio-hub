@@ -13,7 +13,6 @@ const ContactSection = () => {
     email: '',
     phone: '',
     company: '',
-    subject: '',
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,7 +49,6 @@ const ContactSection = () => {
         email: '',
         phone: '',
         company: '',
-        subject: '',
         message: ''
       });
     } catch (error) {
@@ -97,7 +95,7 @@ const ContactSection = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold text-foreground">Email</h4>
-                    <p className="text-muted-foreground">contact@chaitanyavichare.com</p>
+                    <p className="text-muted-foreground">chaitanyavichare.99@gmail.com</p>
                   </div>
                 </div>
 
@@ -202,19 +200,6 @@ const ContactSection = () => {
                     placeholder="Your organization"
                   />
                 </div>
-              </div>
-
-              <div>
-                <Label htmlFor="subject" className="text-foreground">Subject *</Label>
-                <Input
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 bg-background border-border focus:border-primary"
-                  placeholder="What can I help you with?"
-                />
               </div>
 
               <div>
