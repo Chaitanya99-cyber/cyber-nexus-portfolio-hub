@@ -71,8 +71,22 @@ const SkillsSection = () => {
   };
 
   return (
-    <section id="skills" className="py-20 bg-gradient-to-br from-secondary/10 to-background">
-      <div className="max-w-6xl mx-auto px-4">
+    <section id="skills" className="py-20 bg-gradient-to-br from-secondary/10 to-background relative overflow-hidden">
+      {/* Floating Background Icons */}
+      <div className="absolute top-24 left-12 float-animation opacity-8">
+        <Code className="h-16 w-16 text-primary" />
+      </div>
+      <div className="absolute top-60 right-16 float-animation opacity-6" style={{ animationDelay: '2s' }}>
+        <Wrench className="h-12 w-12 text-accent" />
+      </div>
+      <div className="absolute bottom-40 left-20 float-animation opacity-10" style={{ animationDelay: '3s' }}>
+        <Users className="h-18 w-18 text-primary" />
+      </div>
+      <div className="absolute bottom-20 right-8 float-animation opacity-8" style={{ animationDelay: '1.5s' }}>
+        <BookOpen className="h-14 w-14 text-accent" />
+      </div>
+      
+      <div className="max-w-6xl mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">

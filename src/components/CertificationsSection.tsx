@@ -54,8 +54,22 @@ const CertificationsSection = () => {
   };
 
   return (
-    <section id="certifications" className="py-20 bg-gradient-to-br from-secondary/10 to-background">
-      <div className="max-w-6xl mx-auto px-4">
+    <section id="certifications" className="py-20 bg-gradient-to-br from-secondary/10 to-background relative overflow-hidden">
+      {/* Floating Background Icons */}
+      <div className="absolute top-16 right-12 float-animation opacity-10">
+        <Award className="h-20 w-20 text-primary" />
+      </div>
+      <div className="absolute top-52 left-16 float-animation opacity-8" style={{ animationDelay: '1.5s' }}>
+        <Shield className="h-14 w-14 text-accent" />
+      </div>
+      <div className="absolute bottom-32 right-20 float-animation opacity-6" style={{ animationDelay: '3s' }}>
+        <Calendar className="h-16 w-16 text-primary" />
+      </div>
+      <div className="absolute bottom-16 left-8 float-animation opacity-10" style={{ animationDelay: '2.5s' }}>
+        <ExternalLink className="h-12 w-12 text-accent" />
+      </div>
+      
+      <div className="max-w-6xl mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">

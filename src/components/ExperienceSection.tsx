@@ -40,8 +40,22 @@ const ExperienceSection = () => {
   };
 
   return (
-    <section id="experience" className="py-20 bg-gradient-to-br from-background to-secondary/10">
-      <div className="max-w-6xl mx-auto px-4">
+    <section id="experience" className="py-20 bg-gradient-to-br from-background to-secondary/10 relative overflow-hidden">
+      {/* Floating Background Icons */}
+      <div className="absolute top-20 right-16 float-animation opacity-8">
+        <Briefcase className="h-18 w-18 text-primary" />
+      </div>
+      <div className="absolute top-60 left-12 float-animation opacity-6" style={{ animationDelay: '2.5s' }}>
+        <Calendar className="h-14 w-14 text-accent" />
+      </div>
+      <div className="absolute bottom-24 right-8 float-animation opacity-10" style={{ animationDelay: '1s' }}>
+        <MapPin className="h-16 w-16 text-primary" />
+      </div>
+      <div className="absolute bottom-60 left-16 float-animation opacity-8" style={{ animationDelay: '3.5s' }}>
+        <CheckCircle className="h-12 w-12 text-accent" />
+      </div>
+      
+      <div className="max-w-6xl mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">

@@ -89,15 +89,13 @@ const HeroSection = () => {
           </Button>
           
           <Button 
-            onClick={() => {
-              window.open('/admin', '_blank');
-            }}
+            onClick={scrollToAbout}
             variant="outline"
             size="lg"
             className="neon-border bg-transparent hover:bg-primary/10"
           >
             <Shield className="h-5 w-5 mr-2" />
-            Admin Panel
+            Know About Me
           </Button>
         </div>
 

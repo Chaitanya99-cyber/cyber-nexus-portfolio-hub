@@ -87,8 +87,25 @@ const ProductsSection = () => {
   const featuredProducts = products.filter(product => product.is_featured);
 
   return (
-    <section id="products" className="py-20 bg-gradient-to-br from-background to-secondary/20">
-      <div className="max-w-7xl mx-auto px-4">
+    <section id="products" className="py-20 bg-gradient-to-br from-background to-secondary/20 relative overflow-hidden">
+      {/* Floating Background Icons */}
+      <div className="absolute top-20 left-16 float-animation opacity-8">
+        <ShoppingBag className="h-18 w-18 text-primary" />
+      </div>
+      <div className="absolute top-60 right-12 float-animation opacity-10" style={{ animationDelay: '2s' }}>
+        <FileText className="h-16 w-16 text-accent" />
+      </div>
+      <div className="absolute bottom-40 left-8 float-animation opacity-6" style={{ animationDelay: '3.5s' }}>
+        <Shield className="h-20 w-20 text-primary" />
+      </div>
+      <div className="absolute bottom-20 right-20 float-animation opacity-8" style={{ animationDelay: '1s' }}>
+        <Download className="h-14 w-14 text-accent" />
+      </div>
+      <div className="absolute top-40 left-1/3 float-animation opacity-4" style={{ animationDelay: '4s' }}>
+        <Star className="h-12 w-12 text-primary" />
+      </div>
+      
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
