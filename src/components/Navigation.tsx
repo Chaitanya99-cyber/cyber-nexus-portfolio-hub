@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, Shield, User, Briefcase, Award, Code, Mail, ShoppingBag } from 'lucide-react';
+import { Menu, X, Shield, User, Briefcase, Award, Code, Mail, ShoppingBag, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Navigation = () => {
@@ -12,6 +12,7 @@ const Navigation = () => {
     { id: 'experience', label: 'Experience', icon: Briefcase },
     { id: 'skills', label: 'Skills', icon: Code },
     { id: 'certifications', label: 'Certifications', icon: Award },
+    { id: 'resume', label: 'Resume', icon: FileText },
     { id: 'products', label: 'Products', icon: ShoppingBag },
     { id: 'contact', label: 'Contact', icon: Mail },
   ];

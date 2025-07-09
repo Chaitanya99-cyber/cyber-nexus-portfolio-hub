@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ShoppingBag, Download, Star, Eye, FileText, Shield, CheckCircle, ArrowRight } from 'lucide-react';
+import { ShoppingBag, Download, Star, Eye, FileText, Shield, CheckCircle, ArrowRight, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface Product {
   id: string;
@@ -15,6 +16,7 @@ interface Product {
   product_type: string;
   preview_url?: string;
   image_url?: string;
+  file_url?: string;
   features?: string[];
   tags?: string[];
   download_count: number;
@@ -34,6 +36,7 @@ const ProductsSection = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -83,8 +86,56 @@ const ProductsSection = () => {
         const category = categories.find(cat => cat.id === product.category_id);
         return category?.slug === selectedCategory;
       });
-
+  
   const featuredProducts = products.filter(product => product.is_featured);
+
+  const handleProductAction = async (product: Product) => {
+    const price = Number(product.price);
+    
+    if (price <= 0) {
+      // Free product - direct download
+      if (product.file_url) {
+        try {
+          const link = document.createElement('a');
+          link.href = product.file_url;
+          link.download = `${product.name.replace(/\s+/g, '_')}.${product.file_url.split('.').pop()}`;
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          toast({
+            title: "Download started",
+            description: `Your free download of "${product.name}" has been initiated.`,
+          });
+        } catch (error) {
+          toast({
+            title: "Download failed",
+            description: "Failed to download the file. Please try again.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "File not available",
+          description: "No download file is available for this product.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      // Paid product - redirect to payment
+      toast({
+        title: "Payment required",
+        description: "Redirecting to payment gateway...",
+      });
+      
+      // For now, we'll show a placeholder message
+      // In a real implementation, you would integrate with Stripe or another payment processor
+      setTimeout(() => {
+        alert(`Payment gateway integration needed for "${product.name}" - Price: $${price}`);
+      }, 1000);
+    }
+  };
 
   return (
     <section id="products" className="py-20 bg-gradient-to-br from-background to-secondary/20 relative overflow-hidden">
@@ -186,9 +237,22 @@ const ProductsSection = () => {
                         )}
                       </div>
                       
-                      <Button size="sm" className="cyber-button">
-                        <ArrowRight className="h-4 w-4 ml-1" />
-                        View Details
+                      <Button 
+                        size="sm" 
+                        className="cyber-button"
+                        onClick={() => handleProductAction(product)}
+                      >
+                        {Number(product.price) <= 0 ? (
+                          <>
+                            <Download className="h-4 w-4 mr-1" />
+                            Free
+                          </>
+                        ) : (
+                          <>
+                            <CreditCard className="h-4 w-4 mr-1" />
+                            Buy
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -255,12 +319,25 @@ const ProductsSection = () => {
                     
                     <div className="flex gap-2">
                       {product.preview_url && (
-                        <Button size="sm" variant="outline" className="neon-border bg-transparent">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="neon-border bg-transparent"
+                          onClick={() => window.open(product.preview_url, '_blank')}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                       )}
-                      <Button size="sm" className="cyber-button">
-                        <ShoppingBag className="h-4 w-4" />
+                      <Button 
+                        size="sm" 
+                        className="cyber-button"
+                        onClick={() => handleProductAction(product)}
+                      >
+                        {Number(product.price) <= 0 ? (
+                          <Download className="h-4 w-4" />
+                        ) : (
+                          <CreditCard className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>

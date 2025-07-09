@@ -325,6 +325,7 @@ export type Database = {
           name: string
           phone: string | null
           profile_image_url: string | null
+          resume_url: string | null
           title: string
           updated_at: string
         }
@@ -339,6 +340,7 @@ export type Database = {
           name?: string
           phone?: string | null
           profile_image_url?: string | null
+          resume_url?: string | null
           title?: string
           updated_at?: string
         }
@@ -353,6 +355,7 @@ export type Database = {
           name?: string
           phone?: string | null
           profile_image_url?: string | null
+          resume_url?: string | null
           title?: string
           updated_at?: string
         }

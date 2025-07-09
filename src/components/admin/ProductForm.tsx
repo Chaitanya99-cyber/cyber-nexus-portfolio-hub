@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Save } from 'lucide-react';
+import { Plus, Save, Upload, File, X } from 'lucide-react';
 
 const productSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -37,6 +37,8 @@ interface ProductFormProps {
 
 export const ProductForm = ({ product, open, onOpenChange, onSuccess }: ProductFormProps) => {
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
   
   const {
@@ -62,11 +64,47 @@ export const ProductForm = ({ product, open, onOpenChange, onSuccess }: ProductF
     } : {},
   });
 
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const uploadFile = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `products/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('products')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from('products')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
+
   const onSubmit = async (data: ProductFormData) => {
     setLoading(true);
     
     try {
       const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      
+      let fileUrl = data.file_url || null;
+      
+      // Upload file if selected
+      if (selectedFile) {
+        setUploading(true);
+        fileUrl = await uploadFile(selectedFile);
+        setUploading(false);
+      }
       
       const productData = {
         name: data.name,
@@ -80,7 +118,7 @@ export const ProductForm = ({ product, open, onOpenChange, onSuccess }: ProductF
         requirements: data.requirements ? data.requirements.split(',').map(r => r.trim()).filter(Boolean) : null,
         tags: data.tags ? data.tags.split(',').map(t => t.trim()).filter(Boolean) : null,
         image_url: data.image_url || null,
-        file_url: data.file_url || null,
+        file_url: fileUrl,
         preview_url: data.preview_url || null,
       };
 
@@ -110,6 +148,7 @@ export const ProductForm = ({ product, open, onOpenChange, onSuccess }: ProductF
       }
       
       reset();
+      setSelectedFile(null);
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
@@ -120,6 +159,7 @@ export const ProductForm = ({ product, open, onOpenChange, onSuccess }: ProductF
       });
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -218,23 +258,64 @@ export const ProductForm = ({ product, open, onOpenChange, onSuccess }: ProductF
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="file_url">Download File URL</Label>
-              <Input
-                id="file_url"
-                {...register('file_url')}
-                placeholder="https://example.com/file.pdf"
-              />
+              <Label>Product File Upload</Label>
+              <div className="border-2 border-dashed border-border rounded-lg p-4">
+                {selectedFile ? (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <File className="h-4 w-4" />
+                      <span className="text-sm">{selectedFile.name}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedFile(null)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <input
+                      type="file"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      id="file-upload"
+                      accept=".pdf,.doc,.docx,.zip,.rar"
+                    />
+                    <label
+                      htmlFor="file-upload"
+                      className="cursor-pointer text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      Click to upload a file or drag and drop
+                    </label>
+                  </div>
+                )}
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="preview_url">Preview URL</Label>
-              <Input
-                id="preview_url"
-                {...register('preview_url')}
-                placeholder="https://example.com/preview"
-              />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="file_url">Or Enter File URL</Label>
+                <Input
+                  id="file_url"
+                  {...register('file_url')}
+                  placeholder="https://example.com/file.pdf"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="preview_url">Preview URL</Label>
+                <Input
+                  id="preview_url"
+                  {...register('preview_url')}
+                  placeholder="https://example.com/preview"
+                />
+              </div>
             </div>
           </div>
 
@@ -276,9 +357,9 @@ export const ProductForm = ({ product, open, onOpenChange, onSuccess }: ProductF
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || uploading}>
               <Save className="h-4 w-4 mr-2" />
-              {loading ? 'Saving...' : (product ? 'Update Product' : 'Create Product')}
+              {uploading ? 'Uploading...' : loading ? 'Saving...' : (product ? 'Update Product' : 'Create Product')}
             </Button>
           </div>
         </form>
