@@ -83,6 +83,17 @@ const ProductsSection = () => {
   const filteredProducts = selectedCategory === 'all' 
     ? products 
     : products.filter(product => {
+        // Handle predefined categories
+        if (['templates', 'policies', 'sops', 'toolkits', 'checklists'].includes(selectedCategory)) {
+          return product.product_type === selectedCategory.slice(0, -1) || // Remove 's' for singular form
+                 product.product_type === selectedCategory ||
+                 (selectedCategory === 'templates' && product.product_type === 'template') ||
+                 (selectedCategory === 'policies' && product.product_type === 'policy') ||
+                 (selectedCategory === 'sops' && product.product_type === 'sop') ||
+                 (selectedCategory === 'toolkits' && product.product_type === 'toolkit') ||
+                 (selectedCategory === 'checklists' && product.product_type === 'checklist');
+        }
+        // Handle database categories
         const category = categories.find(cat => cat.id === product.category_id);
         return category?.slug === selectedCategory;
       });
@@ -177,16 +188,41 @@ const ProductsSection = () => {
           >
             All Products
           </Button>
-          {categories.map((category) => (
-            <Button
-              key={category.id}
-              variant={selectedCategory === category.slug ? 'default' : 'outline'}
-              onClick={() => setSelectedCategory(category.slug)}
-              className={selectedCategory === category.slug ? 'cyber-button' : 'neon-border bg-transparent hover:bg-primary/10'}
-            >
-              {category.name}
-            </Button>
-          ))}
+          <Button
+            variant={selectedCategory === 'templates' ? 'default' : 'outline'}
+            onClick={() => setSelectedCategory('templates')}
+            className={selectedCategory === 'templates' ? 'cyber-button' : 'neon-border bg-transparent hover:bg-primary/10'}
+          >
+            Templates
+          </Button>
+          <Button
+            variant={selectedCategory === 'policies' ? 'default' : 'outline'}
+            onClick={() => setSelectedCategory('policies')}
+            className={selectedCategory === 'policies' ? 'cyber-button' : 'neon-border bg-transparent hover:bg-primary/10'}
+          >
+            Policies
+          </Button>
+          <Button
+            variant={selectedCategory === 'sops' ? 'default' : 'outline'}
+            onClick={() => setSelectedCategory('sops')}
+            className={selectedCategory === 'sops' ? 'cyber-button' : 'neon-border bg-transparent hover:bg-primary/10'}
+          >
+            SOPs
+          </Button>
+          <Button
+            variant={selectedCategory === 'toolkits' ? 'default' : 'outline'}
+            onClick={() => setSelectedCategory('toolkits')}
+            className={selectedCategory === 'toolkits' ? 'cyber-button' : 'neon-border bg-transparent hover:bg-primary/10'}
+          >
+            Toolkits
+          </Button>
+          <Button
+            variant={selectedCategory === 'checklists' ? 'default' : 'outline'}
+            onClick={() => setSelectedCategory('checklists')}
+            className={selectedCategory === 'checklists' ? 'cyber-button' : 'neon-border bg-transparent hover:bg-primary/10'}
+          >
+            Checklists
+          </Button>
         </div>
 
         {/* Featured Products */}
@@ -359,15 +395,6 @@ const ProductsSection = () => {
           </div>
         )}
 
-        {/* Product Categories Overview */}
-        <div className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((category) => (
-            <div key={category.id} className="cyber-card text-center">
-              <h4 className="text-lg font-bold text-primary mb-2">{category.name}</h4>
-              <p className="text-sm text-muted-foreground">{category.description}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );

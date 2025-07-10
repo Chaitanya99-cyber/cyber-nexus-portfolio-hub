@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ProductForm } from '@/components/admin/ProductForm';
 import { ProfileForm } from '@/components/admin/ProfileForm';
+import { CertificationForm } from '@/components/admin/CertificationForm';
 import type { User, Session } from '@supabase/supabase-js';
 
 const Admin = () => {
@@ -29,8 +30,11 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [contactMessages, setContactMessages] = useState([]);
+  const [certifications, setCertifications] = useState([]);
   const [productFormOpen, setProductFormOpen] = useState(false);
+  const [certificationFormOpen, setCertificationFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [editingCertification, setEditingCertification] = useState(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -79,8 +83,15 @@ const Admin = () => {
         .select('*')
         .order('created_at', { ascending: false });
       
+      // Fetch certifications
+      const { data: certificationsData } = await supabase
+        .from('certifications')
+        .select('*')
+        .order('display_order', { ascending: true });
+      
       setProducts(productsData || []);
       setContactMessages(messagesData || []);
+      setCertifications(certificationsData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -144,6 +155,47 @@ const Admin = () => {
   const handleProductFormSuccess = () => {
     fetchData();
     setEditingProduct(null);
+  };
+
+  const handleEditCertification = (certification: any) => {
+    setEditingCertification(certification);
+    setCertificationFormOpen(true);
+  };
+
+  const handleAddCertification = () => {
+    setEditingCertification(null);
+    setCertificationFormOpen(true);
+  };
+
+  const handleCertificationFormSuccess = () => {
+    fetchData();
+    setEditingCertification(null);
+  };
+
+  const handleDeleteCertification = async (certificationId: string) => {
+    if (!confirm('Are you sure you want to delete this certification?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('certifications')
+        .delete()
+        .eq('id', certificationId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Certification deleted successfully!",
+      });
+      
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete certification",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
@@ -258,6 +310,7 @@ const Admin = () => {
           <TabsList className="bg-background border border-border">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="certifications">Certifications</TabsTrigger>
             <TabsTrigger id="messages-tab" value="messages">Messages</TabsTrigger>
             <TabsTrigger id="settings-tab" value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -278,6 +331,10 @@ const Admin = () => {
                       <Button onClick={handleAddProduct} className="w-full justify-start" variant="outline">
                         <Plus className="h-4 w-4 mr-2" />
                         Add New Product
+                      </Button>
+                      <Button onClick={handleAddCertification} className="w-full justify-start" variant="outline">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add New Certification
                       </Button>
                       <Button onClick={() => document.getElementById('messages-tab')?.click()} className="w-full justify-start" variant="outline">
                         <FileText className="h-4 w-4 mr-2" />
@@ -385,6 +442,87 @@ const Admin = () => {
             </Card>
           </TabsContent>
           
+          <TabsContent value="certifications" className="space-y-6">
+            <Card className="cyber-card">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-primary">Certification Management</CardTitle>
+                    <CardDescription>Manage your professional certifications</CardDescription>
+                  </div>
+                  <Button onClick={handleAddCertification} className="cyber-button">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Certification
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {certifications.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-2">No certifications yet</h3>
+                    <p className="text-muted-foreground mb-4">Start by adding your first certification</p>
+                    <Button onClick={handleAddCertification} className="cyber-button">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Your First Certification
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Issuer</TableHead>
+                          <TableHead>Issue Date</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {certifications.map((cert: any) => (
+                          <TableRow key={cert.id}>
+                            <TableCell className="font-medium">{cert.name}</TableCell>
+                            <TableCell>{cert.issuer}</TableCell>
+                            <TableCell>{cert.issue_date ? new Date(cert.issue_date).toLocaleDateString() : '-'}</TableCell>
+                            <TableCell>
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                cert.is_active 
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                              }`}>
+                                {cert.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  onClick={() => handleEditCertification(cert)}
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  onClick={() => handleDeleteCertification(cert.id)}
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
           <TabsContent value="messages" className="space-y-6">
             <Card className="cyber-card">
               <CardHeader>
@@ -432,6 +570,13 @@ const Admin = () => {
         open={productFormOpen}
         onOpenChange={setProductFormOpen}
         onSuccess={handleProductFormSuccess}
+      />
+
+      <CertificationForm
+        certification={editingCertification}
+        open={certificationFormOpen}
+        onOpenChange={setCertificationFormOpen}
+        onSuccess={handleCertificationFormSuccess}
       />
     </div>
   );

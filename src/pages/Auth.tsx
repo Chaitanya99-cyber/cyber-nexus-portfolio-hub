@@ -51,41 +51,33 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      if (isSignUp) {
-        const redirectUrl = `${window.location.origin}/`;
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: redirectUrl
-          }
-        });
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Account Created!",
-          description: "Please check your email to verify your account.",
-          duration: 5000,
-        });
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Welcome back!",
-          description: "You have successfully signed in.",
-          duration: 3000,
-        });
+      // Check admin credentials first
+      const { data: isValidAdmin } = await supabase.rpc('verify_admin_credentials', {
+        input_email: email,
+        input_password: password
+      });
+
+      if (!isValidAdmin) {
+        throw new Error('Invalid admin credentials. Access denied.');
       }
+
+      // If admin credentials are valid, sign in with Supabase Auth
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in as admin.",
+        duration: 3000,
+      });
     } catch (error: any) {
       toast({
         title: "Authentication Error",
-        description: error.message || "An error occurred during authentication.",
+        description: error.message || "Invalid admin credentials.",
         variant: "destructive",
         duration: 5000,
       });
@@ -107,7 +99,7 @@ const Auth = () => {
             Admin Access
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            {isSignUp ? 'Create your admin account' : 'Sign in to manage your website'}
+            Sign in to manage your website
           </CardDescription>
         </CardHeader>
         
@@ -161,22 +153,14 @@ const Auth = () => {
               {loading ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-background border-t-transparent mr-2" />
-                  {isSignUp ? 'Creating Account...' : 'Signing In...'}
+                  Signing In...
                 </div>
               ) : (
-                isSignUp ? 'Create Account' : 'Sign In'
+                'Sign In'
               )}
             </Button>
           </form>
           
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-            </button>
-          </div>
           
           <div className="mt-4 text-center">
             <button
