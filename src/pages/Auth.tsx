@@ -51,29 +51,28 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      // Check admin credentials first
-      const { data: isValidAdmin } = await supabase.rpc('verify_admin_credentials', {
+      // Check admin credentials
+      const { data: isValidAdmin, error: rpcError } = await supabase.rpc('verify_admin_credentials', {
         input_email: email,
         input_password: password
       });
+
+      if (rpcError) {
+        throw new Error('Authentication service error. Please try again.');
+      }
 
       if (!isValidAdmin) {
         throw new Error('Invalid admin credentials. Access denied.');
       }
 
-      // If admin credentials are valid, sign in with Supabase Auth
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (error) throw error;
-      
+      // If admin credentials are valid, redirect to admin panel
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in as admin.",
         duration: 3000,
       });
+      
+      navigate('/admin');
     } catch (error: any) {
       toast({
         title: "Authentication Error",
