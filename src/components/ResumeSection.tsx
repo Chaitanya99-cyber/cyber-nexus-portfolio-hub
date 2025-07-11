@@ -79,7 +79,7 @@ const ResumeSection = () => {
   }
 
   return (
-    <section id="resume" className="py-20 px-4 relative overflow-hidden">
+    <section id="resume" className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background animations */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-20 left-10 animate-float">

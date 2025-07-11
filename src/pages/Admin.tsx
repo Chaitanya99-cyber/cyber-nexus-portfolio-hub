@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ProductForm } from '@/components/admin/ProductForm';
 import { ProfileForm } from '@/components/admin/ProfileForm';
 import { CertificationForm } from '@/components/admin/CertificationForm';
+import ContentManager from '@/components/admin/ContentManager';
 import type { User, Session } from '@supabase/supabase-js';
 
 const Admin = () => {
@@ -39,34 +40,14 @@ const Admin = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (!session?.user) {
-          navigate('/auth');
-        } else {
-          setLoading(false);
-        }
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (!session?.user) {
-        navigate('/auth');
-      } else {
-        setLoading(false);
-        fetchData();
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    // Check if user came from auth page, otherwise redirect to auth
+    const isAuthenticated = sessionStorage.getItem('admin_authenticated');
+    if (!isAuthenticated) {
+      navigate('/auth');
+    } else {
+      setLoading(false);
+      fetchData();
+    }
   }, [navigate]);
 
   const fetchData = async () => {
@@ -97,23 +78,14 @@ const Admin = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast({
-        title: "Signed Out",
-        description: "You have been successfully signed out.",
-        duration: 3000,
-      });
-      navigate('/');
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Error signing out. Please try again.",
-        variant: "destructive",
-        duration: 3000,
-      });
-    }
+  const handleSignOut = () => {
+    sessionStorage.removeItem('admin_authenticated');
+    toast({
+      title: "Signed Out",
+      description: "You have been successfully signed out.",
+      duration: 3000,
+    });
+    navigate('/auth');
   };
 
   const handleDeleteProduct = async (productId: string) => {
@@ -214,33 +186,35 @@ const Admin = () => {
       {/* Header */}
       <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center h-auto sm:h-16 py-3 sm:py-0 gap-3 sm:gap-0">
             <div className="flex items-center space-x-3">
-              <Shield className="h-8 w-8 text-primary" />
+              <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               <div>
-                <h1 className="text-xl font-bold text-foreground">Admin Panel</h1>
-                <p className="text-sm text-muted-foreground">Chaitanya Vichare - GRC Professional</p>
+                <h1 className="text-lg sm:text-xl font-bold text-foreground">Admin Panel</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">Chaitanya Vichare - GRC Professional</p>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
               <Button
                 onClick={() => navigate('/')}
                 variant="outline"
                 size="sm"
-                className="bg-transparent"
+                className="bg-transparent flex-1 sm:flex-none"
               >
                 <Eye className="h-4 w-4 mr-2" />
-                View Site
+                <span className="hidden sm:inline">View Site</span>
+                <span className="sm:hidden">View</span>
               </Button>
               <Button
                 onClick={handleSignOut}
                 variant="outline"
                 size="sm"
-                className="bg-transparent"
+                className="bg-transparent flex-1 sm:flex-none"
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
+                <span className="hidden sm:inline">Sign Out</span>
+                <span className="sm:hidden">Exit</span>
               </Button>
             </div>
           </div>
@@ -248,22 +222,22 @@ const Admin = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">Dashboard</h2>
-          <p className="text-muted-foreground">Manage your GRC website and products</p>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Dashboard</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">Manage your GRC website and products</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <Card className="cyber-card">
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Products</p>
-                  <p className="text-2xl font-bold text-primary">{products.length}</p>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">Products</p>
+                  <p className="text-lg sm:text-2xl font-bold text-primary">{products.length}</p>
                 </div>
-                <Package className="h-8 w-8 text-primary" />
+                <Package className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
@@ -307,13 +281,18 @@ const Admin = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="bg-background border border-border">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="products">Products</TabsTrigger>
-            <TabsTrigger value="certifications">Certifications</TabsTrigger>
-            <TabsTrigger id="messages-tab" value="messages">Messages</TabsTrigger>
-            <TabsTrigger id="settings-tab" value="settings">Settings</TabsTrigger>
+          <TabsList className="bg-background border border-border overflow-x-auto w-full">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="content" className="text-xs sm:text-sm">Content</TabsTrigger>
+            <TabsTrigger value="products" className="text-xs sm:text-sm">Products</TabsTrigger>
+            <TabsTrigger value="certifications" className="text-xs sm:text-sm">Certifications</TabsTrigger>
+            <TabsTrigger id="messages-tab" value="messages" className="text-xs sm:text-sm">Messages</TabsTrigger>
+            <TabsTrigger id="settings-tab" value="settings" className="text-xs sm:text-sm">Settings</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="content" className="space-y-6">
+            <ContentManager />
+          </TabsContent>
           
           <TabsContent value="overview" className="space-y-6">
             <Card className="cyber-card">

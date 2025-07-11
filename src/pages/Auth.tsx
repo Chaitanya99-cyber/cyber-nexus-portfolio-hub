@@ -20,31 +20,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          navigate('/admin');
-        }
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        navigate('/admin');
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+  // Remove Supabase auth state management since we're using custom admin authentication
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +41,8 @@ const Auth = () => {
         throw new Error('Invalid admin credentials. Access denied.');
       }
 
-      // If admin credentials are valid, redirect to admin panel
+      // If admin credentials are valid, set session and redirect to admin panel
+      sessionStorage.setItem('admin_authenticated', 'true');
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in as admin.",
@@ -86,10 +63,10 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/10 to-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/10 to-background p-4 sm:p-6 lg:p-8">
       <div className="absolute inset-0 matrix-bg opacity-30" />
       
-      <Card className="w-full max-w-md relative z-10 cyber-card">
+      <Card className="w-full max-w-md relative z-10 cyber-card shadow-2xl">
         <CardHeader className="space-y-1 text-center">
           <div className="flex items-center justify-center mb-4">
             <Shield className="h-12 w-12 text-primary glow-pulse" />

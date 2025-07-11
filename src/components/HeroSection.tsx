@@ -53,9 +53,9 @@ const HeroSection = () => {
         </div>
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
-        <div className="mb-8">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6">
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6">
             <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
               Chaitanya Vichare
             </span>
