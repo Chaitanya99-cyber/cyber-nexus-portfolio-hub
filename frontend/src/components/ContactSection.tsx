@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { contactAPI } from '@/services/api';
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -30,13 +30,7 @@ const ContactSection = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('contact_messages')
-        .insert([formData]);
-
-      if (error) {
-        throw error;
-      }
+      await contactAPI.create(formData);
 
       toast({
         title: "Message Sent Successfully!",
