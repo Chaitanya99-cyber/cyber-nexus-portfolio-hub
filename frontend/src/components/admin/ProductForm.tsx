@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { productsAPI, uploadAPI } from '@/services/api';
+import type { Product, ProductCreate } from '@/services/api';
 import { Plus, Save, Upload, File, X } from 'lucide-react';
 
 const productSchema = z.object({
@@ -29,7 +30,7 @@ const productSchema = z.object({
 type ProductFormData = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
-  product?: any;
+  product?: Product | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
@@ -64,31 +65,45 @@ export const ProductForm = ({ product, open, onOpenChange, onSuccess }: ProductF
     } : {},
   });
 
+  // Reset form when product changes
+  useEffect(() => {
+    if (product) {
+      reset({
+        name: product.name,
+        description: product.description,
+        short_description: product.short_description || '',
+        price: Number(product.price),
+        original_price: product.original_price ? Number(product.original_price) : undefined,
+        product_type: product.product_type || 'digital',
+        image_url: product.image_url || '',
+        file_url: product.file_url || '',
+        preview_url: product.preview_url || '',
+        features: product.features?.join(', ') || '',
+        requirements: product.requirements?.join(', ') || '',
+        tags: product.tags?.join(', ') || '',
+      });
+    } else {
+      reset({
+        name: '',
+        description: '',
+        short_description: '',
+        price: 0,
+        product_type: 'digital',
+        image_url: '',
+        file_url: '',
+        preview_url: '',
+        features: '',
+        requirements: '',
+        tags: '',
+      });
+    }
+  }, [product, reset]);
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
     }
-  };
-
-  const uploadFile = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `products/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('products')
-      .upload(filePath, file);
-
-    if (uploadError) {
-      throw uploadError;
-    }
-
-    const { data } = supabase.storage
-      .from('products')
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
   };
 
   const onSubmit = async (data: ProductFormData) => {
@@ -97,49 +112,41 @@ export const ProductForm = ({ product, open, onOpenChange, onSuccess }: ProductF
     try {
       const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
       
-      let fileUrl = data.file_url || null;
+      let fileUrl = data.file_url || undefined;
       
       // Upload file if selected
       if (selectedFile) {
         setUploading(true);
-        fileUrl = await uploadFile(selectedFile);
+        const uploadResult = await uploadAPI.uploadFile(selectedFile);
+        fileUrl = uploadResult.url;
         setUploading(false);
       }
       
-      const productData = {
+      const productData: Partial<ProductCreate> = {
         name: data.name,
         description: data.description,
-        short_description: data.short_description || null,
+        short_description: data.short_description || undefined,
         price: data.price,
-        original_price: data.original_price || null,
+        original_price: data.original_price || undefined,
         product_type: data.product_type,
         slug,
-        features: data.features ? data.features.split(',').map(f => f.trim()).filter(Boolean) : null,
-        requirements: data.requirements ? data.requirements.split(',').map(r => r.trim()).filter(Boolean) : null,
-        tags: data.tags ? data.tags.split(',').map(t => t.trim()).filter(Boolean) : null,
-        image_url: data.image_url || null,
+        features: data.features ? data.features.split(',').map(f => f.trim()).filter(Boolean) : undefined,
+        requirements: data.requirements ? data.requirements.split(',').map(r => r.trim()).filter(Boolean) : undefined,
+        tags: data.tags ? data.tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
+        image_url: data.image_url || undefined,
         file_url: fileUrl,
-        preview_url: data.preview_url || null,
+        preview_url: data.preview_url || undefined,
       };
 
       if (product) {
-        const { error } = await supabase
-          .from('products')
-          .update(productData)
-          .eq('id', product.id);
-        
-        if (error) throw error;
+        await productsAPI.update(product.id, productData);
         
         toast({
           title: "Success",
           description: "Product updated successfully!",
         });
       } else {
-        const { error } = await supabase
-          .from('products')
-          .insert(productData);
-        
-        if (error) throw error;
+        await productsAPI.create(productData as ProductCreate);
         
         toast({
           title: "Success",
