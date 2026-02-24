@@ -25,8 +25,11 @@ from database import (
     db, products_collection, certifications_collection,
     contact_messages_collection, profile_collection,
     admin_users_collection, content_sections_collection,
-    init_default_admin, init_default_profile
+    website_content_collection, analytics_pageviews_collection,
+    analytics_sessions_collection,
+    init_default_admin, init_default_profile, init_default_website_content
 )
+from phase3_routes import content_router, analytics_router, search_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
