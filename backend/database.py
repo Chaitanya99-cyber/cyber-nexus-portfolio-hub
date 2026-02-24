@@ -66,3 +66,79 @@ async def init_default_profile():
         }
         await profile_collection.insert_one(default_profile)
         print("Default profile created")
+
+async def init_default_website_content():
+    """Initialize default website content if none exists"""
+    import uuid
+    from datetime import datetime
+    
+    content_count = await website_content_collection.count_documents({})
+    if content_count == 0:
+        default_content = {
+            "id": str(uuid.uuid4()),
+            "hero": {
+                "title": "Chaitanya Vichare",
+                "subtitle": "GRC Professional",
+                "description": "Experienced professional specializing in governance, risk management, and compliance frameworks",
+                "cta_text": "Get In Touch",
+                "cta_link": "#contact"
+            },
+            "about": {
+                "heading": "About Me",
+                "subheading": "Professional Background",
+                "bio": "Experienced GRC professional with expertise in governance, risk management, and compliance.",
+                "description": "With over 2 years of experience in the GRC field, I help organizations build robust security and compliance frameworks.",
+                "stats": [
+                    {"label": "Years Experience", "value": "2.10+"},
+                    {"label": "Projects Delivered", "value": "2"},
+                    {"label": "Certifications", "value": "3+"}
+                ]
+            },
+            "experience": {
+                "heading": "Professional Experience",
+                "subheading": "Career Journey",
+                "experiences": []
+            },
+            "skills": {
+                "heading": "Skills & Expertise",
+                "subheading": "Technical Proficiencies",
+                "categories": [
+                    {
+                        "id": str(uuid.uuid4()),
+                        "name": "GRC & Compliance",
+                        "skills": ["Risk Assessment", "Compliance Management", "Policy Development", "Audit Management"],
+                        "display_order": 1
+                    },
+                    {
+                        "id": str(uuid.uuid4()),
+                        "name": "Security Frameworks",
+                        "skills": ["ISO 27001", "NIST", "SOC 2", "GDPR"],
+                        "display_order": 2
+                    }
+                ]
+            },
+            "resume": {
+                "heading": "Download Resume",
+                "subheading": "Get My Complete Profile",
+                "description": "Download my comprehensive resume for detailed information",
+                "show_section": True
+            },
+            "settings": {
+                "site_title": "GRC Portfolio - Chaitanya Vichare",
+                "site_description": "Professional GRC portfolio showcasing expertise in governance, risk, and compliance",
+                "primary_color": "#6366f1",
+                "accent_color": "#8b5cf6",
+                "footer_text": "© 2025 Chaitanya Vichare. All rights reserved.",
+                "show_products_section": True,
+                "show_certifications_section": True,
+                "show_contact_section": True,
+                "social_links": {
+                    "linkedin": "https://linkedin.com/in/chaitanya-vichare",
+                    "email": "chaitanya@grc.com"
+                }
+            },
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        await website_content_collection.insert_one(default_content)
+        print("Default website content created")
