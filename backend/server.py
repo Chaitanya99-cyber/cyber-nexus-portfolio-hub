@@ -400,6 +400,11 @@ async def health_check():
 # Include the router in the main app
 app.include_router(api_router)
 
+# Include Phase 3 routers
+app.include_router(content_router)
+app.include_router(analytics_router)
+app.include_router(search_router)
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
