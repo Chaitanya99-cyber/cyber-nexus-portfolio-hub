@@ -194,11 +194,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Public GET endpoint, admin-only PUT endpoint for profile updates"
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE TESTING PASSED: Profile endpoints working correctly. Public GET returns profile data, admin PUT successfully updates bio, location, phone, and experience years. Profile data persisted correctly."
   
   - task: "File upload endpoint"
     implemented: true
