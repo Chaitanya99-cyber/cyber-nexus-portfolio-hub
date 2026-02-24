@@ -5,24 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { profileAPI, uploadAPI } from '@/services/api';
+import type { Profile, ProfileUpdate } from '@/services/api';
 import { Save, Upload, Image, FileText, Globe } from 'lucide-react';
 
-interface ProfileData {
-  name: string;
-  title: string;
-  bio: string;
-  email: string;
-  phone: string;
-  location: string;
-  linkedin_url: string;
-  experience_years: number;
-  profile_image_url: string;
-  resume_url: string;
-}
-
 const ContentManager = () => {
-  const [profileData, setProfileData] = useState<ProfileData>({
+  const [profileData, setProfileData] = useState<Partial<Profile>>({
     name: '',
     title: '',
     bio: '',
@@ -45,13 +33,7 @@ const ContentManager = () => {
   const fetchProfileData = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('profile_info')
-        .select('*')
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
+      const data = await profileAPI.get();
       if (data) {
         setProfileData(data);
       }
@@ -70,11 +52,7 @@ const ContentManager = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profile_info')
-        .upsert(profileData, { onConflict: 'id' });
-
-      if (error) throw error;
+      await profileAPI.update(profileData as ProfileUpdate);
 
       toast({
         title: "Success",
@@ -94,10 +72,7 @@ const ContentManager = () => {
 
   const handleImageUpload = async (file: File, field: 'profile_image_url' | 'resume_url') => {
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-      
-      // Use correct bucket names that exist
+      const uploadResult = await uploadAPI.uploadFile(file);
       const bucket = field === 'profile_image_url' ? 'avatars' : 'resumes';
 
       // First try to create bucket if it doesn't exist (for avatars)
