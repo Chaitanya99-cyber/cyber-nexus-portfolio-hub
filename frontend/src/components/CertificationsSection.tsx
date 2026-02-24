@@ -1,32 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Award, ExternalLink, Calendar, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-
-interface Certification {
-  id: string;
-  name: string;
-  issuer: string;
-  issue_date?: string;
-  expiry_date?: string;
-  credential_id?: string;
-  credential_url?: string;
-  image_url?: string;
-}
+import { certificationsAPI } from '@/services/api';
+import type { Certification } from '@/services/api';
 
 const CertificationsSection = () => {
   const [certifications, setCertifications] = useState<Certification[]>([]);
 
   useEffect(() => {
     const fetchCertifications = async () => {
-      const { data, error } = await supabase
-        .from('certifications')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order');
-      
-      if (data && !error) {
+      try {
+        const data = await certificationsAPI.getAll(true); // Fetch only active certifications
         setCertifications(data);
+      } catch (error) {
+        console.error('Failed to fetch certifications:', error);
       }
     };
 
