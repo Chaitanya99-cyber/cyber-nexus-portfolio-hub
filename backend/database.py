@@ -21,6 +21,9 @@ contact_messages_collection = db.contact_messages
 profile_collection = db.profile
 admin_users_collection = db.admin_users
 content_sections_collection = db.content_sections
+website_content_collection = db.website_content
+analytics_pageviews_collection = db.analytics_pageviews
+analytics_sessions_collection = db.analytics_sessions
 
 async def init_default_admin():
     """Initialize default admin user if none exists"""
