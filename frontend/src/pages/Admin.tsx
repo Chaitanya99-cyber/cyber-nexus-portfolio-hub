@@ -18,24 +18,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { productsAPI, certificationsAPI, contactAPI, authAPI } from '@/services/api';
+import type { Product, Certification, ContactMessage } from '@/services/api';
 import { ProductForm } from '@/components/admin/ProductForm';
 import { ProfileForm } from '@/components/admin/ProfileForm';
 import { CertificationForm } from '@/components/admin/CertificationForm';
 import ContentManager from '@/components/admin/ContentManager';
-import type { User, Session } from '@supabase/supabase-js';
 
 const Admin = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState([]);
-  const [contactMessages, setContactMessages] = useState([]);
-  const [certifications, setCertifications] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
+  const [certifications, setCertifications] = useState<Certification[]>([]);
   const [productFormOpen, setProductFormOpen] = useState(false);
   const [certificationFormOpen, setCertificationFormOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [editingCertification, setEditingCertification] = useState(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingCertification, setEditingCertification] = useState<Certification | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -53,33 +51,29 @@ const Admin = () => {
   const fetchData = async () => {
     try {
       // Fetch products
-      const { data: productsData } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const productsData = await productsAPI.getAll();
       
       // Fetch contact messages
-      const { data: messagesData } = await supabase
-        .from('contact_messages')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const messagesData = await contactAPI.getAll();
       
       // Fetch certifications
-      const { data: certificationsData } = await supabase
-        .from('certifications')
-        .select('*')
-        .order('display_order', { ascending: true });
+      const certificationsData = await certificationsAPI.getAll();
       
       setProducts(productsData || []);
       setContactMessages(messagesData || []);
       setCertifications(certificationsData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch data. Please try refreshing the page.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleSignOut = () => {
-    sessionStorage.removeItem('admin_authenticated');
+    authAPI.logout();
     toast({
       title: "Signed Out",
       description: "You have been successfully signed out.",
@@ -92,12 +86,7 @@ const Admin = () => {
     if (!confirm('Are you sure you want to delete this product?')) return;
     
     try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', productId);
-      
-      if (error) throw error;
+      await productsAPI.delete(productId);
       
       toast({
         title: "Success",
@@ -114,7 +103,7 @@ const Admin = () => {
     }
   };
 
-  const handleEditProduct = (product: any) => {
+  const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
     setProductFormOpen(true);
   };
@@ -129,7 +118,7 @@ const Admin = () => {
     setEditingProduct(null);
   };
 
-  const handleEditCertification = (certification: any) => {
+  const handleEditCertification = (certification: Certification) => {
     setEditingCertification(certification);
     setCertificationFormOpen(true);
   };
@@ -148,12 +137,7 @@ const Admin = () => {
     if (!confirm('Are you sure you want to delete this certification?')) return;
     
     try {
-      const { error } = await supabase
-        .from('certifications')
-        .delete()
-        .eq('id', certificationId);
-      
-      if (error) throw error;
+      await certificationsAPI.delete(certificationId);
       
       toast({
         title: "Success",
