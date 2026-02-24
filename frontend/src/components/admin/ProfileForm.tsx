@@ -114,13 +114,6 @@ export const ProfileForm = () => {
       };
 
       await profileAPI.update(profileData);
-          .insert([profileData])
-          .select()
-          .single();
-        
-        if (error) throw error;
-        setProfileId(newProfile.id);
-      }
       
       setSelectedResume(null);
       toast({
