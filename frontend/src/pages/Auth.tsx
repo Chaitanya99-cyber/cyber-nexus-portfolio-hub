@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, Eye, EyeOff, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,43 +6,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import type { User, Session } from '@supabase/supabase-js';
+import { authAPI } from '@/services/api';
 
 const Auth = () => {
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  // Remove Supabase auth state management since we're using custom admin authentication
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Check admin credentials
-      const { data: isValidAdmin, error: rpcError } = await supabase.rpc('verify_admin_credentials', {
-        input_email: email,
-        input_password: password
-      });
-
-      if (rpcError) {
-        throw new Error('Authentication service error. Please try again.');
-      }
-
-      if (!isValidAdmin) {
-        throw new Error('Invalid admin credentials. Access denied.');
-      }
-
-      // If admin credentials are valid, set session and redirect to admin panel
+      // Login with backend API
+      const response = await authAPI.login({ email, password });
+      
+      // Set session storage for admin authentication
       sessionStorage.setItem('admin_authenticated', 'true');
+      
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in as admin.",
