@@ -7,11 +7,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { certificationsAPI, uploadAPI } from '@/services/api';
+import type { Certification, CertificationCreate } from '@/services/api';
 import { Upload, X } from 'lucide-react';
 
 interface CertificationFormProps {
-  certification?: any;
+  certification?: Certification | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
@@ -64,21 +65,8 @@ export const CertificationForm = ({ certification, open, onOpenChange, onSuccess
 
   const handleImageUpload = async (file: File) => {
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `certificates/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('certifications')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('certifications')
-        .getPublicUrl(filePath);
-
-      return data.publicUrl;
+      const uploadResult = await uploadAPI.uploadFile(file);
+      return uploadResult.url;
     } catch (error: any) {
       toast({
         title: "Upload failed",
@@ -106,19 +94,21 @@ export const CertificationForm = ({ certification, open, onOpenChange, onSuccess
         imageUrl = uploadedUrl;
       }
 
-      const certificationData = {
-        ...formData,
-        image_url: imageUrl,
+      const certificationData: Partial<CertificationCreate> = {
+        name: formData.name,
+        issuer: formData.issuer,
+        issue_date: formData.issue_date || undefined,
+        expiry_date: formData.expiry_date || undefined,
+        credential_id: formData.credential_id || undefined,
+        credential_url: formData.credential_url || undefined,
+        image_url: imageUrl || undefined,
+        display_order: formData.display_order,
+        is_active: formData.is_active,
       };
 
       if (certification) {
         // Update existing certification
-        const { error } = await supabase
-          .from('certifications')
-          .update(certificationData)
-          .eq('id', certification.id);
-
-        if (error) throw error;
+        await certificationsAPI.update(certification.id, certificationData);
 
         toast({
           title: "Success",
@@ -126,11 +116,7 @@ export const CertificationForm = ({ certification, open, onOpenChange, onSuccess
         });
       } else {
         // Create new certification
-        const { error } = await supabase
-          .from('certifications')
-          .insert([certificationData]);
-
-        if (error) throw error;
+        await certificationsAPI.create(certificationData as CertificationCreate);
 
         toast({
           title: "Success", 
