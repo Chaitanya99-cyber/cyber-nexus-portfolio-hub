@@ -2,69 +2,26 @@ import { useEffect, useState } from 'react';
 import { ShoppingBag, Download, Star, Eye, FileText, Shield, CheckCircle, ArrowRight, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
+import { productsAPI } from '@/services/api';
+import type { Product } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  short_description?: string;
-  category_id?: string;
-  price: number;
-  original_price?: number;
-  product_type: string;
-  preview_url?: string;
-  image_url?: string;
-  file_url?: string;
-  features?: string[];
-  tags?: string[];
-  download_count: number;
-  rating: number;
-  review_count: number;
-  is_featured: boolean;
-}
-
-interface ProductCategory {
-  id: string;
-  name: string;
-  description?: string;
-  slug: string;
-}
 
 const ProductsSection = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order');
-      
-      if (data && !error) {
+      try {
+        const data = await productsAPI.getAll(true); // Fetch only active products
         setProducts(data);
-      }
-    };
-
-    const fetchCategories = async () => {
-      const { data, error } = await supabase
-        .from('product_categories')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order');
-      
-      if (data && !error) {
-        setCategories(data);
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
       }
     };
 
     fetchProducts();
-    fetchCategories();
   }, []);
 
   const getProductIcon = (type: string) => {
@@ -93,9 +50,7 @@ const ProductsSection = () => {
                  (selectedCategory === 'toolkits' && product.product_type === 'toolkit') ||
                  (selectedCategory === 'checklists' && product.product_type === 'checklist');
         }
-        // Handle database categories
-        const category = categories.find(cat => cat.id === product.category_id);
-        return category?.slug === selectedCategory;
+        return false;
       });
   
   const featuredProducts = products.filter(product => product.is_featured);
