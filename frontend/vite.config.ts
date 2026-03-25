@@ -8,11 +8,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "0.0.0.0",
     port: 3000,
-    allowedHosts: [
-      '.preview.emergentagent.com',
-      '.emergentagent.cloud',
-      'localhost',
-    ],
+    strictPort: false,
+    hmr: {
+      clientPort: 443,
+    },
   },
   plugins: [
     react(),
